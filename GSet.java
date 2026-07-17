@@ -1,36 +1,39 @@
-public class PNCounter {
-    private final GCounter increments;
-    private final GCounter decrements;
+import java.util.HashSet;
+import java.util.Set;
 
-    public PNCounter(String replicaId) {
-        this.increments = new GCounter(replicaId);
-        this.decrements = new GCounter(replicaId);
+/**
+ * G-Set: a Grow-only Set CRDT.
+ *
+ * Elements can be added but never removed.
+ * Merging two G-Sets = set union.
+ */
+public class GSet<T> {
+    private final Set<T> elements;
+
+    public GSet() {
+        this.elements = new HashSet<>();
     }
 
-    private PNCounter(GCounter increments, GCounter decrements) {
-        this.increments = increments;
-        this.decrements = decrements;
+    private GSet(Set<T> elements) {
+        this.elements = elements;
     }
 
-    public void increment() {
-        increments.increment();
+    public void add(T element) {
+        elements.add(element);
     }
 
-    // Note: decrementing INCREMENTS the decrements-counter. We never subtract directly.
-    public void decrement() {
-        decrements.increment();
+    public boolean contains(T element) {
+        return elements.contains(element);
     }
 
-    public int value() {
-        return increments.value() - decrements.value();
-    }
-
-    public PNCounter merge(PNCounter other) {
-        return new PNCounter(this.increments.merge(other.increments), this.decrements.merge(other.decrements));
+    public GSet<T> merge(GSet<T> other) {
+        Set<T> merged = new HashSet<>(this.elements);
+        merged.addAll(other.elements);
+        return new GSet<>(merged);
     }
 
     @Override
     public String toString() {
-        return "value=" + value() + " (P=" + increments.value() + ", N=" + decrements.value() + ")";
+        return elements.toString();
     }
 }
