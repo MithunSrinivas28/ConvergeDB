@@ -5,45 +5,43 @@ import java.util.UUID;
 public class ORSet<T> {
     private record TaggedElement<E>(E element, String tag) {}
 
-    private final Set<TaggedElement<T>> addedTags;
-    private final Set<TaggedElement<T>> removedTags;
+    private final Set<TaggedElement<T>> added;
+    private final Set<TaggedElement<T>> removed;
 
     public ORSet() {
-        this.addedTags = new HashSet<>();
-        this.removedTags = new HashSet<>();
+        this.added = new HashSet<>();
+        this.removed = new HashSet<>();
     }
 
-    private ORSet(Set<TaggedElement<T>> addedTags, Set<TaggedElement<T>> removedTags) {
-        this.addedTags = addedTags;
-        this.removedTags = removedTags;
+    private ORSet(Set<TaggedElement<T>> added, Set<TaggedElement<T>> removed) {
+        this.added = added;
+        this.removed = removed;
     }
 
-    // Every add gets a fresh, unique tag -- this is what lets "apple" be
-    // re-added later even after an earlier "apple" instance was removed.
     public void add(T element) {
-        addedTags.add(new TaggedElement<>(element, UUID.randomUUID().toString()));
+        added.add(new TaggedElement<>(element, UUID.randomUUID().toString()));
     }
 
-    // Only tombstones the tags we currently observe as live for this element --
-    // NOT a permanent ban on the element itself.
     public void remove(T element) {
-        for (TaggedElement<T> tagged : addedTags) {
-            if (tagged.element().equals(element)) {
-                removedTags.add(tagged);
-            }
+        for (TaggedElement<T> t : added) {
+            if (t.element().equals(element))
+                removed.add(t);
         }
     }
 
     public boolean contains(T element) {
-        return addedTags.stream()
-                .anyMatch(t -> t.element().equals(element) && !removedTags.contains(t));
+        for (TaggedElement<T> t : added) {
+            if (t.element().equals(element) && !removed.contains(t))
+                return true;
+        }
+        return false;
     }
 
     public ORSet<T> merge(ORSet<T> other) {
-        Set<TaggedElement<T>> mergedAdded = new HashSet<>(this.addedTags);
-        mergedAdded.addAll(other.addedTags);
-        Set<TaggedElement<T>> mergedRemoved = new HashSet<>(this.removedTags);
-        mergedRemoved.addAll(other.removedTags);
+        Set<TaggedElement<T>> mergedAdded = new HashSet<>(this.added);
+        mergedAdded.addAll(other.added);
+        Set<TaggedElement<T>> mergedRemoved = new HashSet<>(this.removed);
+        mergedRemoved.addAll(other.removed);
         return new ORSet<>(mergedAdded, mergedRemoved);
     }
 }

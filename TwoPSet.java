@@ -17,10 +17,8 @@ public class TwoPSet<T> {
     }
 
     public void remove(T element) {
-        // Can only tombstone something that was actually added.
-        if (added.contains(element)) {
+        if (added.contains(element))
             removed.add(element);
-        }
     }
 
     public boolean contains(T element) {

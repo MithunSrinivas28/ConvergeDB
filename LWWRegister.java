@@ -24,16 +24,11 @@ public class LWWRegister<T> {
     }
 
     public LWWRegister<T> merge(LWWRegister<T> other) {
-        if (this.timestamp > other.timestamp) {
+        if (this.timestamp > other.timestamp)
             return this;
-        } else if (other.timestamp > this.timestamp) {
+        if (other.timestamp > this.timestamp)
             return other;
-        } else {
-            // Exact tie (clock skew makes this more common than people expect).
-            // Deterministic tie-break: higher replicaId string wins, on BOTH sides,
-            // so merge(A,B) and merge(B,A) always agree.
-            return this.replicaId.compareTo(other.replicaId) >= 0 ? this : other;
-        }
+        return this.replicaId.compareTo(other.replicaId) >= 0 ? this : other;
     }
 
     @Override

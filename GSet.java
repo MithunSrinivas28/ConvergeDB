@@ -1,12 +1,6 @@
 import java.util.HashSet;
 import java.util.Set;
 
-/**
- * G-Set: a Grow-only Set CRDT.
- *
- * Elements can be added but never removed.
- * Merging two G-Sets = set union.
- */
 public class GSet<T> {
     private final Set<T> elements;
 

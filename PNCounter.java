@@ -16,7 +16,6 @@ public class PNCounter {
         increments.increment();
     }
 
-    // Note: decrementing INCREMENTS the decrements-counter. We never subtract directly.
     public void decrement() {
         decrements.increment();
     }
@@ -26,7 +25,10 @@ public class PNCounter {
     }
 
     public PNCounter merge(PNCounter other) {
-        return new PNCounter(this.increments.merge(other.increments), this.decrements.merge(other.decrements));
+        return new PNCounter(
+            this.increments.merge(other.increments),
+            this.decrements.merge(other.decrements)
+        );
     }
 
     @Override

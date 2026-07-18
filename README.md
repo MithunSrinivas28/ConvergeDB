@@ -104,13 +104,14 @@ This is an educational project. It prioritizes clarity and correctness over prod
 The project is intentionally flat — seven Java files in one directory, no packages, no frameworks:
 
 ```
-├── GCounter.java       The foundational counter CRDT
-├── PNCounter.java      Composed of two GCounters
-├── GSet.java           The foundational set CRDT
-├── TwoPSet.java        Composed of two GSets
-├── LWWRegister.java    Timestamp-based register
-├── ORSet.java          Tag-based observable-remove set
-└── Main.java           Demonstrates GCounter convergence
+├── GCounter.java          The foundational counter CRDT
+├── PNCounter.java         Composed of two GCounters
+├── GSet.java              The foundational set CRDT
+├── TwoPSet.java           Composed of two GSets
+├── LWWRegister.java       Timestamp-based register
+├── ORSet.java             Tag-based observable-remove set
+├── Main.java              Demonstrates GCounter convergence
+└── CRDTSimulation.java    Full convergence test for all 6 CRDTs
 ```
 
 **Design decisions:**
@@ -219,6 +220,32 @@ I also gained a much deeper appreciation for how merge algorithms work. It's eas
 Working with eventual consistency also taught me how hard it is to reason about time in distributed systems. The LWW-Register looks simple until you realize that "last" depends on clock synchronization, and clocks across machines can disagree. The tie-breaking logic (using replica IDs) isn't an optimization — it's a correctness requirement. Without it, two replicas could merge the same pair of concurrent writes and reach different conclusions.
 
 Perhaps the biggest takeaway is how much engineering goes into the collaborative tools I use every day. When I type in Google Docs and my teammate's edits appear seamlessly, or when I drag an element in Figma and my colleague sees it move in real time — there are layers of carefully designed data structures making that feel effortless. This project gave me a small window into that world, and a deep respect for the people who build these systems at scale.
+
+---
+
+## Running the Simulation
+
+`CRDTSimulation.java` is a self-contained demo that verifies all six CRDTs. It simulates a realistic distributed scenario for each data structure:
+
+1. **Three replicas** (R1, R2, R3) are created for each CRDT.
+2. **Network partition** — each replica performs operations independently with no communication.
+3. **Reconnection** — all replicas merge with each other in different orders.
+4. **Convergence check** — the simulation asserts that every replica arrives at the same state after merging.
+
+CRDTs tested: GCounter, PNCounter, GSet, TwoPSet, LWWRegister, ORSet.
+
+```bash
+javac *.java
+java CRDTSimulation
+```
+
+Expected output: 18 passed, 0 failed.
+
+To run the original GCounter-only demo instead:
+
+```bash
+java Main
+```
 
 ---
 
