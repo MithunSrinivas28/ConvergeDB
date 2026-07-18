@@ -6,48 +6,23 @@
 
 ## Why I Built This
 
-Imagine you're editing a document in Google Docs. Your friend is editing the same paragraph at the same time. Neither of you is waiting for the other. There's no "lock" on the document. And yet, seconds later, both your screens show the same result with both changes intact.
+Applications like **Google Docs**, **Figma**, and offline-first mobile apps allow multiple users to modify the same data simultaneously, even across different devices and unreliable networks. Despite concurrent edits, every replica eventually reaches the same state without requiring manual conflict resolution.
 
-How?
+This is made possible by **Conflict-free Replicated Data Types (CRDTs)**—data structures specifically designed for distributed systems. Instead of preventing conflicts through locks or centralized coordination, CRDTs allow replicas to update independently and rely on deterministic merge algorithms to guarantee eventual consistency.
 
-This seems simple when it works, but the underlying problem is one of the hardest in computer science. The moment you have two or more machines that can independently modify the same piece of data, you have a conflict waiting to happen.
-
-This isn't a niche scenario. It's everywhere:
-
-- **Google Docs** lets dozens of people type into the same document simultaneously, across different continents, with no visible delay.
-- **Figma** lets designers move objects on the same canvas at the same time, even when someone's connection drops for a few seconds.
-- **Redis Active-Active** replicates data across multiple data centers, where each data center can accept writes independently — and they all need to eventually agree.
-- **Offline mobile apps** let you keep working — adding items to a shopping list, writing notes, marking tasks complete — even with no network at all. When connectivity returns, your changes need to merge cleanly with whatever happened on other devices while you were offline.
-
-The classic approach to this problem is straightforward: pick one central server to be the "source of truth," and make every write go through it. If two writes conflict, the server decides who wins. Simple.
-
-But this falls apart quickly:
-
-- What if the central server goes down? Every client is stuck.
-- What if the server is on another continent? Every keystroke has 200ms of latency.
-- What if you need to work offline? You can't write to a server you can't reach.
-- What if the system is so large that a single server becomes a bottleneck?
-
-You could use locks — "only one person can edit this field at a time" — but locks kill the user experience. Nobody wants to see "this cell is locked by another user" in a collaborative spreadsheet.
-
-So the question becomes: is there a way to let every replica accept writes freely, with no coordination, no locks, no central server, and still guarantee that they all converge to the same state?
+This project is my implementation of several fundamental **state-based (CvRDT)** data structures in Java. The goal was to understand how different CRDTs represent state, perform merge operations, and ensure convergence in distributed environments.
 
 ---
 
 ## The Big Question
 
-> If two computers update the same piece of data at the same time, with no communication between them, how can they eventually agree on the result — without losing anyone's changes?
+> **How can multiple replicas modify the same data independently and still converge to the same state without conflicts?**
 
-This is not an obvious thing to solve. Your first instinct might be "just take the latest write" — but what if both writes happened at the exact same millisecond? Or what if "latest" means different things on two machines whose clocks disagree?
+Traditional systems often rely on a central server, distributed locks, or conflict-resolution strategies. While these approaches work, they introduce latency, coordination overhead, and single points of failure.
 
-Your next instinct might be "merge them somehow" — but what does "merge" even mean for a counter? For a set? For a text field? And how do you make sure that merging in different orders doesn't produce different results?
+CRDTs take a different approach. They are designed so that every replica can accept local updates independently, exchange state asynchronously, and deterministically merge those states. Because the merge operation is **commutative, associative, and idempotent**, every replica eventually reaches the same state regardless of message order, duplication, or network delays.
 
-It turns out there is an elegant family of data structures designed exactly for this problem. They're called **CRDTs** — Conflict-free Replicated Data Types.
-
-The core idea: if you design your data structure so that its merge operation is mathematically guaranteed to produce the same result regardless of the order it's applied in, then you never need conflict resolution at all. Replicas can sync in any order, at any time, even with duplicate or delayed messages, and they will always converge to the same state.
-
-No central server. No locks. No conflict resolution logic. Just math.
-
+No locks. No coordination. Just deterministic merging.
 ---
 
 ## What Are CRDTs?
