@@ -207,19 +207,6 @@ There is no `onConflict` callback. No `conflictResolver` strategy pattern. No "i
 
 ---
 
-## What I Learned
-
-Building CRDTs from scratch changed how I think about distributed systems.
-
-Before this project, I thought of conflicts as an inevitability — something you detect after the fact and resolve with heuristics. Pick the latest write. Ask the user. Merge the JSON fields. Every approach felt like a patch over a fundamental problem.
-
-CRDTs showed me that the problem isn't inevitable. It's a consequence of choosing data structures that weren't designed for concurrency. If you choose the right data structure — one whose merge operation is commutative, associative, and idempotent — conflicts simply cannot arise. The math prevents them.
-
-I also gained a much deeper appreciation for how merge algorithms work. It's easy to say "just take the max" for a counter, but the design space gets genuinely interesting when you move to sets. The difference between a 2P-Set (where remove is permanent) and an OR-Set (where you can re-add after removing) comes down to a single design choice: do you tombstone the *element* or the *tag*? That one decision completely changes the semantics of the data structure.
-
-Working with eventual consistency also taught me how hard it is to reason about time in distributed systems. The LWW-Register looks simple until you realize that "last" depends on clock synchronization, and clocks across machines can disagree. The tie-breaking logic (using replica IDs) isn't an optimization — it's a correctness requirement. Without it, two replicas could merge the same pair of concurrent writes and reach different conclusions.
-
-Perhaps the biggest takeaway is how much engineering goes into the collaborative tools I use every day. When I type in Google Docs and my teammate's edits appear seamlessly, or when I drag an element in Figma and my colleague sees it move in real time — there are layers of carefully designed data structures making that feel effortless. This project gave me a small window into that world, and a deep respect for the people who build these systems at scale.
 
 ---
 
